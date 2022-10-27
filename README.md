@@ -29,7 +29,7 @@ To begin with, we must decompose our data using "Predictor().show_decomposed_res
 
 **Parameter "sep" - separator in passed dataset.**
 
-**Parameter "forecast path" - path to the forecast log, default values is working directory + /forecasts.csv
+**Parameter "forecast path" - path to the forecast log, default values is working directory + /forecasts.csv**
 
 **All predicted values are written to a file called "forecasts.csv" by the standard.
 Actions in non-standard situations are also provided in advance. For example: in theory, updates should come to the original data log every 15 minutes, but what else to do when the updated value has not arrived?
@@ -47,5 +47,5 @@ But what to do, if not all values were found and then filled? The answer is: scr
 **I was advised to use the Holt-Winters model.
 Most of the datasets that were given to me had seasonality in the decomposition, plus the dataset itself was stationary. Therefore, I decided to use an exponential smoothing model with an additive trend and seasonality, since the volatility was not large, which made it possible to take into account data from the past with a greater degree.**
 
-# Installing guide
+# Installation guide
 	https://github.com/Leviinson/prediction.git
