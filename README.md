@@ -6,7 +6,7 @@ I hope to see something like this within a month.**
 
 # How the script works.
 ### Requirements
-[![](https://img.shields.io/badge/python-3.10.4-blue)](https://www.python.org/downloads/) [![](https://img.shields.io/badge/numpy-1.23.4-4893da)](https://numpy.org/doc/) [![](https://img.shields.io/badge/statsmodels-0.13.2-7f48da)](https://www.statsmodels.org/stable/index.html) [![](https://img.shields.io/badge/matplotlib-3.6.1-daa748)](https://matplotlib.org/stable/index.html) [![](https://img.shields.io/badge/pandas-1.5.1-382282)](https://pandas.pydata.org/)[![](https://img.shields.io/badge/click-8.1-000000)](https://click.palletsprojects.com/en/8.1.x/)
+[![](https://img.shields.io/badge/python-3.10.4-blue)](https://www.python.org/downloads/) [![](https://img.shields.io/badge/numpy-1.23.4-4893da)](https://numpy.org/doc/) [![](https://img.shields.io/badge/statsmodels-0.13.2-7f48da)](https://www.statsmodels.org/stable/index.html) [![](https://img.shields.io/badge/matplotlib-3.6.1-daa748)](https://matplotlib.org/stable/index.html) [![](https://img.shields.io/badge/pandas-1.5.1-382282)](https://pandas.pydata.org/) [![](https://img.shields.io/badge/click-8.1-000000)](https://click.palletsprojects.com/en/8.1.x/)
 
 **Initially, I was given the format of the input data:
 The first column is the date, the second column is the load level of the process on that date.
@@ -15,7 +15,7 @@ It was necessary to implement a convenient acceptance of data sets through the r
 **The script itself represented as CLI. It can accept as SQL Query result, CSV file across the pipe.
 The most convenient way is, for example**:
 
-	```cat path/to/file.csv | pythonX.X.X --update-freq X --seasonal-period X --number-of-predicted-points X --index-col X --sep X```
+	cat path/to/file.csv | pythonX.X.X --update-freq X --seasonal-period X --number-of-predicted-points X --index-col X --sep X
 
 **Parameter "update frequence" is standard pandas frequency offset (details: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
 It represents update frequence in the dataset. For example, in pinned dateset with project update frequence equals to 15 minutes.**
