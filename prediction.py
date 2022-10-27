@@ -1,5 +1,7 @@
+from email.policy import default
 import io
 import logging
+from time import time
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +11,7 @@ import os
 import sys
 import re
 import requests
+import click
 
 from pathlib import Path
 from typing import Dict, Any, Union
@@ -19,17 +22,22 @@ logging.basicConfig(level = logging.INFO)
 class Deserializer:
 
 
-    def __init__(self, index_col: Union[int, str], update_freq: str,
+    def __init__(self, index_col: Union[int, str],
+                       update_freq: str,
+                       sep: str,
                        data: io.TextIOWrapper) -> None:
         self._data = data
         self._index_col = index_col
+        self._sep = sep
         self._update_freq = update_freq
 
     def get_df_from_data(self):
         df = pd.read_csv(
             self._data,
-            index_col = self._index_col, 
+            index_col = self._index_col,
+            sep = self._sep,
             parse_dates = True).asfreq(self._update_freq)
+        assert df.values.any(), "Wrong separator was choosed or dataset is bad-formatted"
         df.index.names = ['datetime']
         return df
 
@@ -42,7 +50,7 @@ class Predictor:
                        seasonal_period: int,
                        predicted_points_quantity: int,
                        data: io.TextIOWrapper,
-                       forecast_path: str = os.getcwd() + '/forecasts.csv',) -> None:
+                       forecast_path: str) -> None:
         self._actual_data = actual_data
         self._seasonal_period = seasonal_period
         self._predicted_points_quantity = predicted_points_quantity
@@ -51,11 +59,19 @@ class Predictor:
 
 
     def check_updates(self, actual_data: pd.DataFrame,
-                            forecast_data: pd.DataFrame,
-                            forecast_path: str = os.getcwd() + '/forecasts.csv') -> bool:
+                            forecast_data: pd.DataFrame) -> bool:
 
         return Updater.check_updates(actual_data = actual_data,
                                      forecast_data = forecast_data)
+
+
+    def fill_missed_cells(self, forecast_data: pd.DataFrame):
+
+
+        values_column_name = self._actual_data.columns[0]
+        merged_data = self._actual_data.merge(forecast_data, on = 'datetime', how = 'left')['predicted_values']
+        self._actual_data[values_column_name] = self._actual_data[values_column_name].fillna(merged_data)
+
 
     def show_decomposed_result(self):
         '''Decomposing the dataframe to determine prediction model.'''
@@ -68,13 +84,11 @@ class Predictor:
 
     def create_prediction_line(self, update_freq: str):
 
-        exog_title = self._actual_data.columns[0]
         
         if os.path.isfile(self._forecast_path):
             forecast_data = pd.read_csv(self._forecast_path, index_col = 0, parse_dates = True)
             updates = self.check_updates(actual_data = self._actual_data,
-                                         forecast_data = forecast_data,
-                                         forecast_path = self._forecast_path)
+                                         forecast_data = forecast_data)
 
             if not updates:
                 prediction_of_the_losted_dataframe = forecast_data.tail(1)
@@ -82,29 +96,22 @@ class Predictor:
                                                 index = prediction_of_the_losted_dataframe.axes[0],
                                                 columns=['decarie.web-dns1.com'])
 
-                values_col_name = self._actual_data.columns[0]
                 self._actual_data = pd.concat([self._actual_data, losted_dataframe]).asfreq(update_freq)
-                if (self._actual_data.isna().sum() > 0).bool():
-                    merged_data = self._actual_data.merge(forecast_data, on = 'datetime', how = 'left')['predicted_values']
-                    self._actual_data[values_col_name] = self._actual_data[values_col_name].fillna(merged_data)
 
+        data_has_empty_cells = (self._actual_data.isna().sum() > 0).bool()
+        if data_has_empty_cells:
+            self.fill_missed_cells(forecast_data)
 
+        exog_title = self._actual_data.columns[0]
         assert len(self._actual_data[exog_title]) / self._seasonal_period >= 2, "time series must have 2 complete cycles with specified seasonal period"
-        fitted_model = api.ExponentialSmoothing(self._actual_data[exog_title],
+        fitted_model = api.ExponentialSmoothing(self._actual_data,
                                                 seasonal_periods = self._seasonal_period,
                                                 trend = "add",
                                                 seasonal = "add",
                                                 use_boxcox = False,
                                                 damped_trend = True).fit()
-
         prediction_line: pd.Series = fitted_model.forecast(self._predicted_points_quantity)
         return prediction_line
-
-        
-
-        # fitted_model[self._actual_data.columns.name[0]].plot(legend = True, label = 'FITTED MODEL', figsize = (6,4))
-        # prediction_line.plot(legend = True, label ='PREDICTION')
-        # plt.show()
 
 class Callbacker:
     
@@ -116,17 +123,22 @@ class Callbacker:
     def validate_data(cls, actual_value: float, predicted_value: float):
 
         if actual_value ==  0.0:
-            actual_value += 0.001
+            actual_value = 0.001
 
-        if predicted_value / actual_value >= 1.8:
-            return cls.callback()
+        if predicted_value > 0:
+            difference = predicted_value / actual_value
         else:
-            return logging.info('Data passed validation')
+            difference = actual_value
+
+        if difference >= 1.8:
+            return cls.callback(difference = difference)
+        else:
+            return logging.info(f'Data passed validation, difference: {difference}')
             
     @classmethod
     def callback(cls, *args, **kwargs):
         cls.fails += 1
-        print('Что хотите - то и творите.')
+        print(f"It`s a callback, difference: {kwargs['difference']}")
 
 
 class Updater:
@@ -142,23 +154,21 @@ class Updater:
 
         actual_date = actual_data.index[-1]
         date_for_forecast = forecast_data.index[-1]
-        
-        predicted_value = float(forecast_data.values[-1][0])
-        
-        if actual_date > date_for_forecast:
+        predicted_value = forecast_data.values[-1][0]
+
+        if actual_date == date_for_forecast:
+            actual_value = actual_data.values[-1]
+            is_update = True
+            Callbacker.validate_data(actual_value, predicted_value)
+
+        elif actual_date > date_for_forecast:
             logging.info('There is data added outside of the running script.')
-            actual_value = actual_data.loc[date_for_forecast].values[0]
             is_update = True
 
-        elif actual_date != date_for_forecast:
-            logging.info('Here is no new values, so prediction will be based on the previous prediction value.')
-            actual_value = predicted_value
-            is_update = False
         else:
-            actual_value = float(actual_data.values[-1])
-            is_update = True
+            logging.info('Here is no new values, so prediction will be based on the previous prediction value.')
+            is_update = False
 
-        Callbacker.validate_data(actual_value, predicted_value)
         return is_update
 
 
@@ -167,34 +177,29 @@ class Serializer:
 
     def __init__(self, predicted_line: pd.Series,
                        actual_data: pd.DataFrame,
-                       forecast_path: str = os.getcwd() + '/forecasts.csv') -> None:
+                       forecast_path: str) -> None:
 
         self._predicted_line = predicted_line
         self._actual_data = actual_data
         self._forecast_path = forecast_path
 
-    def __get_endog_and_exog_of_predicted_line(self):
-
-
-        self._endogs: pd.DatetimeIndex = self._predicted_line.axes[0]
-        self._exogs: np.array = self._predicted_line.values
-
 
     def add_prediction_line_to_forecast(self) -> None:
 
+        predicted_value = self._predicted_line.values[0]
+        if predicted_value < 0: predicted_value = 0
+        predicted_date = self._predicted_line.index
 
-        self.__get_endog_and_exog_of_predicted_line()
         if not os.path.isfile(self._forecast_path):
-
-            dataframe_with_predicted_values = pd.DataFrame(data = self._exogs,
-                                                           index = self._endogs,
+            dataframe_with_predicted_values = pd.DataFrame(data = predicted_value,
+                                                           index = predicted_date,
                                                            columns = ['predicted_values'])
 
             dataframe_with_predicted_values.index.names = ['datetime']
             dataframe_with_predicted_values.to_csv(self._forecast_path)
         else:
-            dataframe_with_predicted_values = pd.DataFrame(data = self._exogs,
-                                                           index = self._endogs)
+            dataframe_with_predicted_values = pd.DataFrame(data = predicted_value,
+                                                           index = predicted_date, columns=['predicted_value'])
             dataframe_with_predicted_values.to_csv(self._forecast_path,
                                                    mode = 'a',
                                                    header = False)
@@ -214,46 +219,49 @@ class Controller:
         self._callbacker = callbacker
     
     def main(self, index_col: int,
+                   sep: str,
                    update_freq: str,
                    seasonal_period: int,
-                   predicter_points_quantity: int,
-                   data: io.TextIOWrapper,
-                   forecast_path: str = os.getcwd() + '/forecasts.csv') -> None:
+                   predicted_points_quantity: int,
+                   forecast_path: str) -> None:
 
-        
+        data = click.get_binary_stream(name = 'stdin')
+
         actual_data = self._deserializer(data = data,
                                          index_col = index_col,
+                                         sep = sep,
                                          update_freq = update_freq).get_df_from_data()
 
         predicted_line = self._predictor(actual_data = actual_data,
-                                          seasonal_period = seasonal_period,
-                                          predicted_points_quantity = predicter_points_quantity,
-                                          data = data,
-                                          forecast_path = forecast_path,
-                                          ).create_prediction_line(update_freq)
+                                         seasonal_period = seasonal_period,
+                                         predicted_points_quantity = predicted_points_quantity,
+                                         data = data,
+                                         forecast_path = forecast_path
+                                         ).create_prediction_line(update_freq)
 
         self._serializer(actual_data = actual_data,
                          predicted_line = predicted_line,
-                         forecast_path = os.getcwd() + '/forecasts.csv'
+                         forecast_path = forecast_path
                          ).add_prediction_line_to_forecast()
-    
 
+
+@click.command()
+@click.option('-ic', '--index-col', type = int, default = 0)
+@click.option('-s', '--sep', type = str, default = ',')
+@click.option('-uf', '--update-frequence', 'update_freq', type = str, required = True)
+@click.option('-sp', '--seasonal-period', type = int, default = 4*24*7)
+@click.option('-ppq', '--predicted-points-quantity', type = int, default = 1)
+@click.option('-fp', '--forecast-path', type = str, default = os.getcwd() + '/forecasts.csv')
+def main(index_col: int,
+         sep: str,
+         update_freq: str,
+         seasonal_period: int,
+         predicted_points_quantity: int,
+         forecast_path: str) -> None:
+
+    return Controller().main(index_col, sep,
+                             update_freq, seasonal_period,
+                             predicted_points_quantity, forecast_path)
 
 if __name__ == '__main__':
-
-    
-    # train_line = pd.read_csv(sys.stdin, index_col = 0, parse_dates=True).asfreq('15min')
-    # for index, row in train_line.iterrows():
-    #     Controller().main(data = sys.stdin,
-    #                       index_col = 0,
-    #                       update_freq = '15min',
-    #                       seasonal_period = 4*24*7,
-    #                       predicter_points_quantity = 1)
-    #     pd.DataFrame({'values': float(row)}, index = [str(index)]).to_csv('/home/levinsxn/Documents/python/prediction/service3/data/cpu/decarie_test.csv', mode = 'a', header = False)
-    # print(Callbacker.fails)
-
-    Controller().main(data = sys.stdin,
-                      index_col = 0,
-                      update_freq = '15min',
-                      seasonal_period = 4*24*7,
-                      predicter_points_quantity = 1)
+    main()
