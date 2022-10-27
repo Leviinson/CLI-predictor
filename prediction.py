@@ -78,7 +78,7 @@ class Predictor:
         :param: seasonal_period - number of points, that expected represents seasonal period.
             For example we have a dataset with period between points in 15 minutes.
             To begin with, we must decompose our data using "show_decomposed_result" and check: how many points does one season take.
-        :param: number_of_predicted_points - number of point, that script will predict based on the previous points
+        :param: number_of_predicted_points - number of points, that script will predict based on the previous points
         :param: data - passed dataset
         :paran: forecast_path - path to the forecast log
 
@@ -89,12 +89,14 @@ class Predictor:
                        seasonal_period: int,
                        number_of_predicted_points: int,
                        data: io.BufferedReader,
-                       forecast_path: str) -> None:
+                       forecast_path: str,
+                       index_col: int) -> None:
         self._actual_data = actual_data
         self._seasonal_period = seasonal_period
         self._number_of_predicted_points = number_of_predicted_points
         self._data = data
         self._forecast_path = forecast_path
+        self._index_col = index_col
 
 
     def check_updates(self, actual_data: pd.DataFrame,
@@ -156,7 +158,7 @@ class Predictor:
         '''
 
         if os.path.isfile(self._forecast_path):
-            forecast_data = pd.read_csv(self._forecast_path, index_col = 0, parse_dates = True)
+            forecast_data = pd.read_csv(self._forecast_path, index_col = self._index_col, parse_dates = True)
             updates = self.check_updates(actual_data = self._actual_data,
                                          last_forecast_data = forecast_data.tail(1))
 
@@ -340,8 +342,8 @@ class Controller:
                                          seasonal_period = seasonal_period,
                                          number_of_predicted_points = number_of_predicted_points,
                                          data = data,
-                                         forecast_path = forecast_path
-                                         ).create_prediction_line(update_freq)
+                                         forecast_path = forecast_path,
+                                         index_col = index_col).create_prediction_line(update_freq)
 
         self._serializer(actual_data = actual_data,
                          predicted_line = predicted_line,
