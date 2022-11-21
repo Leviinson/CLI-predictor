@@ -1,5 +1,5 @@
 # Introduction 
-**I was recently given the task of making a short script to predict incoming data.
+**I was recently given the task of making a CLI for predicting incoming data of type: date - value for the specified period.
 The experience was very captivating. This was my first team work, that helped me to know many new things.
 The path traveled gave a new charge of motivation, aesthetic pleasure.
 I hope to see something like this within a month.**
