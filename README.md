@@ -48,4 +48,4 @@ But what to do, if not all values were found and then filled? The answer is: scr
 Most of the datasets that were given to me had seasonality in the decomposition, plus the dataset itself was stationary. Therefore, I decided to use an exponential smoothing model with an additive trend and seasonality, since the volatility was not large, which made it possible to take into account data from the past with a greater degree.**
 
 # Installation guide
-	https://github.com/Leviinson/prediction.git
+	git clone https://github.com/Leviinson/prediction.git
