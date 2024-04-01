@@ -52,4 +52,4 @@ Most of the datasets that were given to me had seasonality in the decomposition,
 git clone https://github.com/Leviinson/prediction.git
 
 poetry shell
-poetry install --no-root
+poetry install
