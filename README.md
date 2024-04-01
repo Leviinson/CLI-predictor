@@ -49,7 +49,7 @@ Most of the datasets that were given to me had seasonality in the decomposition,
 
 # Installation guide
 ```
-git clone https://github.com/Leviinson/prediction.git
+git clone https://github.com/Leviinson/CLI-predictor.git
 
 poetry shell
 poetry install
