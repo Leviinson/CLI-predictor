@@ -1,0 +1,11 @@
+[flake8]
+max-line-length = 888
+max-doc-length = 140  
+exclude = .venv/**, .vscode, __pycache__, __init__.py                                                                                                   
+count = true
+statistics = true
+show-source = true
+require-plugins = flake8-docstrings
+tee = true
+doctests = true
+ignore = D205, D400, D301, D107
