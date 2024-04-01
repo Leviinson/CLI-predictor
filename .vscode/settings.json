@@ -1,0 +1,26 @@
+{
+    "black-formatter.interpreter": [
+        ".venv/bin/python3.10"
+    ],
+    "flake8.args": [
+        "--config",
+        ".flake8"
+    ],
+    "flake8.interpreter": [
+        ".venv/bin/python3.10"
+    ],
+    "isort.check": true,
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 5000,
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "isort.args": [
+        "--settings",
+        "pyproject.toml"
+    ],
+    "black-formatter.args": [
+        "--config",
+        "pyproject.toml"
+    ],
+    "mypy.runUsingActiveInterpreter": true,
+    "mypy.configFile": "./pyproject.toml",
+}
