@@ -1,0 +1,65 @@
+[tool.poetry]
+name = "cli-predictor"
+version = "0.1.0"
+description = "CLI for predicting incoming data of type: date - value for the specified period."
+authors = ["Leviinson"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+contourpy = ">=1.0.5"
+cycler = ">=0.11.0"
+fonttools = ">=4.38.0"
+kiwisolver = ">=1.4.4"
+matplotlib = ">=3.6.1"
+numpy = ">=1.23.4"
+packaging = ">=21.3"
+pandas = ">=1.5.1"
+pillow = ">=9.2.0"
+pyparsing = ">=3.0.9"
+python-dateutil = ">=2.8.2"
+pytz = ">=2022.5"
+six = ">=1.16.0"
+statsmodels = "^0.14.1"
+
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.9.0"
+flake8 = "^7.0.0"
+isort = "^5.13.2"
+black = "^24.3.0"
+flake8-docstrings = "^1.7.0"
+pre-commit = "^3.7.0"
+
+[tool.black]
+target-version = ["py311"]
+line-length = 88
+force-exclude = '''
+    (
+    ".pre-commit-config.yaml", 
+    "poetry.lock", 
+    "pyproject.toml", 
+    "README.me",
+    | "__pycache__"
+    )
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+include_trailing_comma = true
+
+[tool.mypy]
+exclude = []
+show_error_codes = true
+ignore_missing_imports = true
+implicit_optional = true
+check_untyped_defs = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
