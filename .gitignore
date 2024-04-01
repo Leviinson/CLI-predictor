@@ -1,4 +1,6 @@
 .venv/
+.mypy_cache/
+
 poetry.lock
 .log
 forecasts.csv
