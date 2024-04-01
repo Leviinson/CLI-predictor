@@ -17,19 +17,19 @@ The most convenient way is, for example**:
 
 	cat path/to/file.csv | pythonX.X.X --update-freq X --seasonal-period X --number-of-predicted-points X --index-col X --sep X
 
-**Parameter "update frequence" is standard pandas frequency offset (details: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
-It represents update frequence in the dataset. For example, in pinned dateset with project update frequence equals to 15 minutes.**
+Parameter `update frequence` is standard pandas frequency offset (details: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
+It represents update frequence in the dataset. For example, in pinned dateset with project update frequence equals to 15 minutes.
 
-**Parameter "seasonal period" - number of points, that expected represents seasonal period.
-To begin with, we must decompose our data using "Predictor().show_decomposed_result()" and check: how many points does one season take.**
+Parameter `seasonal period` - number of points, that expected represents seasonal period.
+To begin with, we must decompose our data using "Predictor().show_decomposed_result()" and check: how many points does one season take.
 
-**Parameter "number of predicted points" - number of points, that script will predict based on the previous points.**
+Parameter `number of predicted points` - number of points, that script will predict based on the previous points.
 
-**Parameter "index col" - number of the column with dates, starts from 0.**
+Parameter `index col` - number of the column with dates, starts from 0.
 
-**Parameter "sep" - separator in passed dataset.**
+Parameter `sep` - separator in passed dataset.
 
-**Parameter "forecast path" - path to the forecast log, default values is working directory + /forecasts.csv**
+Parameter `forecast path` - path to the forecast log, default values is working directory + /forecasts.csv
 
 **All predicted values are written to a file called "forecasts.csv" by the standard.
 Actions in non-standard situations are also provided in advance. For example: in theory, updates should come to the original data log every 15 minutes, but what else to do when the updated value has not arrived?
