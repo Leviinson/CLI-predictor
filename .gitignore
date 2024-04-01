@@ -2,5 +2,5 @@
 .mypy_cache/
 
 poetry.lock
-.log
+*.log
 forecasts.csv
