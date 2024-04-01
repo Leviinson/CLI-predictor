@@ -15,7 +15,7 @@ It was necessary to implement a convenient acceptance of data sets through the r
 **The script itself represented as CLI. It can accept as SQL Query result, CSV file across the pipe.
 The most convenient way is, for example**:
 
-	`cat data/cpu/test_data.csv | python3 main.py -uf 15min -npp 1`
+	cat data/cpu/test_data.csv | python3 main.py -uf 15min -npp 1
 
 Parameter `update frequence` is standard pandas frequency offset (details: https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases).
 It represents update frequence in the dataset. For example, in pinned dateset with project update frequence equals to 15 minutes.
